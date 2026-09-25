@@ -33,10 +33,10 @@ toucher au `boot.img` GKI.
 | Capacité | Pilote / config | Statut |
 |---|---|---|
 | Monitor mode + injection 802.11 | mac80211 + cfg80211 (mainline) | `=m`, natif, aucun patch |
-| RTL8812AU (Panda PAU09) | `rtl8812au.ko` (out-of-tree aircrack-ng) | `=m` |
+| RTL8812AU (Panda PAU09) | `rtl8812au.ko` (out-of-tree aircrack-ng) | **bloqué** (FORTIFY 6.12, voir drivers/) |
 | RT2800USB RT5370/RT3070 (Panda PAU0D/PAU07) | `rt2800usb.ko` (+ rt2x00) | `=m` |
 | RTL8188AU / RTL8192CU/EU | `rtl8xxxu.ko` | `=m` |
-| RTL8188EUS | `rtl8188eu.ko` (out-of-tree aircrack-ng) | `=m` |
+| RTL8188EUS | `rtl8188eu.ko` (out-of-tree aircrack-ng) | **bloqué** (FORTIFY 6.12, voir drivers/) |
 | ath9k_htc AR9271 | `ath9k_htc.ko` (+ ath9k_hw/ath9k_common) | `=m` |
 | USB HID (BadUSB / DuckHunter) | `USB_CONFIGFS_F_HID` + `f_fs` | `=y` (déjà dans GKI) |
 | gadgetfs (HID legacy) | `usb_gadgetfs` | `=y` |

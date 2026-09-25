@@ -86,10 +86,15 @@ for entry in "${OOT_DRIVERS[@]}"; do
     log "  clonage ${name}"
     git clone --depth 1 "${url}" "${d}"
   fi
-  log "  build ${name} (.ko)"
-  # non bloquant : un echec sur un pilote out-of-tree ne casse pas le build global
-  make -C "${KERNEL_DIR}" O="${OUT_DIR}" ARCH="${ARCH}" LLVM=1 \
-    M="${d}" modules || err "  echec ${name} (non bloquant)"
+  log "  build ${name} (.ko) — tentative non bloquante"
+  # NB : ces pilotes anciens (u8 data[0], flags GCC-only) ne compilent PAS
+  # nativement contre le GKI 6.12 (FORTIFY_SOURCE + clang -Werror). Voir
+  # drivers/README.md pour l'erreur exacte et la piste de correctif.
+  make -C "${d}" ARCH="${ARCH}" LLVM=1 \
+    CONFIG_PLATFORM_ANDROID_ARM64=y CONFIG_PLATFORM_I386_PC=n \
+    KSRC="${KERNEL_DIR}" O="${OUT_DIR}" \
+    USER_EXTRA_CFLAGS="-Wno-uninitialized -Wno-unknown-warning-option -Wno-array-bounds -Wno-address-of-packed-member" \
+    modules || err "  echec ${name} (non bloquant — voir drivers/README.md)"
 done
 
 # ---------------------------------------------------------------------------
