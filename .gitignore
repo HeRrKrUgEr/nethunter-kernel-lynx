@@ -1,0 +1,33 @@
+# Sources / builds
+out/
+build/
+*.o
+*.ko
+*.ko.*
+*.mod
+*.mod.c
+modules.order
+Module.symvers
+vmlinux
+System.map
+.config.old
+!defconfig/
+!patches/
+
+# Toolchains
+toolchain/
+prebuilts/
+aarch64-linux-android-*
+clang-*
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.img
+!*.img.example
+
+# Éditeurs / OS
+.DS_Store
+*.swp
+*~
