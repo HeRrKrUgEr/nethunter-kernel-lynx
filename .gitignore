@@ -1,6 +1,10 @@
 # Sources / builds
 out/
 build/
+kernel/
+output/
+drivers/rtl8812au/
+drivers/rtl8188eu/
 *.o
 *.ko
 *.ko.*
