@@ -20,7 +20,7 @@ dans le noyau 6.12 (monitor mode + injection natifs depuis le noyau 5.7).
 Ce dépôt construit donc :
 
 1. Le noyau GKI `android16-6.12` (`gki_defconfig`) ;
-2. Un **fragment de config** `configs/nethunter.fragment` qui active, en
+2. Un **fragment de config** `configs/nethunter.config` qui active, en
    modules `=m`, la stack wireless et les pilotes WiFi/BT/gadget requis ;
 3. Les pilotes **out-of-tree** (RTL8812AU, RTL8188EU) en modules `.ko`.
 

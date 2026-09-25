@@ -47,9 +47,9 @@ Pas besoin de cross-compileur GCC : `LLVM=1` fait tout via clang/lld.
 Déroulé :
 
 1. Clone `kernel/common` (`android16-6.12`) dans `kernel/common` (shallow).
-2. Copie `configs/nethunter.fragment` dans `arch/arm64/configs/`.
-3. `make LLVM=1 O=out ARCH=arm64 gki_defconfig nethunter.fragment`
-   puis `olddefconfig` pour résoudre les dépendances.
+2. Copie `configs/nethunter.config` dans `arch/arm64/configs/`.
+3. `make LLVM=1 O=out ARCH=arm64 gki_defconfig nethunter.config`
+   (la cible `.config` applique le fragment via `merge_config.sh -m`).
 4. `make LLVM=1 O=out ARCH=arm64 -j$(nproc)` : noyau + modules in-tree.
 5. Build des pilotes out-of-tree dans `drivers/` :
    - `rtl8812au` (aircrack-ng/rtl8812au)

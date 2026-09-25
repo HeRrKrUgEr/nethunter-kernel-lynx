@@ -50,17 +50,17 @@ fi
 # ---------------------------------------------------------------------------
 # 2. Fragment de config
 # ---------------------------------------------------------------------------
-log "2/7 : installation du fragment nethunter.fragment"
+log "2/7 : installation du fragment nethunter.config"
 mkdir -p "${KERNEL_DIR}/arch/${ARCH}/configs"
-cp -f "${CONFIGS_DIR}/nethunter.fragment" "${KERNEL_DIR}/arch/${ARCH}/configs/"
+cp -f "${CONFIGS_DIR}/nethunter.config" "${KERNEL_DIR}/arch/${ARCH}/configs/"
 
 # ---------------------------------------------------------------------------
 # 3. Generation .config (gki_defconfig + fragment, dependances resolues)
+#    La cible <name>.config utilise merge_config.sh -m (qui lance olddefconfig).
 # ---------------------------------------------------------------------------
-log "3/7 : generation .config (gki_defconfig + nethunter.fragment)"
+log "3/7 : generation .config (gki_defconfig + nethunter.config)"
 make -C "${KERNEL_DIR}" O="${OUT_DIR}" ARCH="${ARCH}" LLVM=1 \
-  gki_defconfig nethunter.fragment
-make -C "${KERNEL_DIR}" O="${OUT_DIR}" ARCH="${ARCH}" LLVM=1 olddefconfig
+  gki_defconfig nethunter.config
 
 # ---------------------------------------------------------------------------
 # 4. Compilation noyau + modules in-tree
