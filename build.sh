@@ -86,15 +86,24 @@ for entry in "${OOT_DRIVERS[@]}"; do
     log "  clonage ${name}"
     git clone --depth 1 "${url}" "${d}"
   fi
-  log "  build ${name} (.ko) — tentative non bloquante"
-  # NB : ces pilotes anciens (u8 data[0], flags GCC-only) ne compilent PAS
-  # nativement contre le GKI 6.12 (FORTIFY_SOURCE + clang -Werror). Voir
-  # drivers/README.md pour l'erreur exacte et la piste de correctif.
+  log "  build ${name} (.ko)"
+  # Workaround FORTIFY_SOURCE (GKI 6.12) + clang 22 : ces drivers legacy
+  # utilisent des "u8 data[0]" (zero-length arrays) incompatibles avec
+  # fortify-string.h. -D__NO_FORTIFY desactive proprement fortify (voie
+  # officielle, cf. kernel/common/lib/string.c) sans diverger du noyau.
+  # -Wno-error demote les warnings generiques en warnings (clang 22 emet
+  # tautological-overlap-compare, implicit-fallthrough, parentheses-equality...)
+  # SANS toucher aux -Werror=implicit-function-declaration / -Werror=
+  # incompatible-pointer-types qui, eux, attrapent les vrais bugs. Les -Wno-*
+  # restants reduisent le bruit. La plateforme ARM64_RPI (et non ANDROID_ARM64)
+  # evite la glue Android legacy (rtw_android.c -> linux/wlan_plat.h, supprime
+  # du mainline).
+  OOT_CFLAGS="-D__NO_FORTIFY -Wno-error -Wno-uninitialized -Wno-unknown-warning-option -Wno-array-bounds -Wno-address-of-packed-member"
   make -C "${d}" ARCH="${ARCH}" LLVM=1 \
-    CONFIG_PLATFORM_ANDROID_ARM64=y CONFIG_PLATFORM_I386_PC=n \
+    CONFIG_PLATFORM_ARM64_RPI=y CONFIG_PLATFORM_I386_PC=n CONFIG_PLATFORM_ANDROID_ARM64=n \
     KSRC="${KERNEL_DIR}" O="${OUT_DIR}" \
-    USER_EXTRA_CFLAGS="-Wno-uninitialized -Wno-unknown-warning-option -Wno-array-bounds -Wno-address-of-packed-member" \
-    modules || err "  echec ${name} (non bloquant — voir drivers/README.md)"
+    USER_EXTRA_CFLAGS="${OOT_CFLAGS}" \
+    modules || err "  echec ${name}"
 done
 
 # ---------------------------------------------------------------------------

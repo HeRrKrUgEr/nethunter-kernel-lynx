@@ -22,21 +22,23 @@ Ce dépôt construit donc :
 1. Le noyau GKI `android16-6.12` (`gki_defconfig`) ;
 2. Un **fragment de config** `configs/nethunter.config` qui active, en
    modules `=m`, la stack wireless et les pilotes WiFi/BT/gadget requis ;
-3. Les pilotes **out-of-tree** (RTL8812AU, RTL8188EU) en modules `.ko`.
+3. Les pilotes **out-of-tree** (RTL8812AU → `88XXau.ko`, RTL8188EU → `8188eu.ko`)
+   en modules `.ko` ;
+4. Un **module Magisk** installable (voir `build-magisk.sh`).
 
-Résultat : un jeu de fichiers `.ko` à charger sur le device (via `insmod` /
-`modprobe` depuis le chroot NetHunter, ou un module Magisk/KernelSU), sans
-toucher au `boot.img` GKI.
+Résultat : un jeu de fichiers `.ko` à charger sur le device (via `insmod`
+depuis le chroot NetHunter, ou le module Magisk/KernelSU), sans toucher au
+`boot.img` GKI.
 
 ## Capacités activées
 
 | Capacité | Pilote / config | Statut |
 |---|---|---|
 | Monitor mode + injection 802.11 | mac80211 + cfg80211 (mainline) | `=m`, natif, aucun patch |
-| RTL8812AU (Panda PAU09) | `rtl8812au.ko` (out-of-tree aircrack-ng) | **bloqué** (FORTIFY 6.12, voir drivers/) |
+| RTL8812AU (Panda PAU09) | `88XXau.ko` (out-of-tree aircrack-ng) | compilé |
 | RT2800USB RT5370/RT3070 (Panda PAU0D/PAU07) | `rt2800usb.ko` (+ rt2x00) | `=m` |
 | RTL8188AU / RTL8192CU/EU | `rtl8xxxu.ko` | `=m` |
-| RTL8188EUS | `rtl8188eu.ko` (out-of-tree aircrack-ng) | **bloqué** (FORTIFY 6.12, voir drivers/) |
+| RTL8188EUS | `8188eu.ko` (out-of-tree aircrack-ng) | compilé |
 | ath9k_htc AR9271 | `ath9k_htc.ko` (+ ath9k_hw/ath9k_common) | `=m` |
 | USB HID (BadUSB / DuckHunter) | `USB_CONFIGFS_F_HID` + `f_fs` | `=y` (déjà dans GKI) |
 | gadgetfs (HID legacy) | `usb_gadgetfs` | `=y` |
@@ -51,6 +53,7 @@ toucher au `boot.img` GKI.
 git clone https://github.com/HeRrKrUgEr/nethunter-kernel-lynx.git
 cd nethunter-kernel-lynx
 ./build.sh            # JOBS=4 ./build.sh si RAM limitée
+./build-magisk.sh     # génère output/nethunter-lynx-magisk-6.12.92.zip
 ```
 
 Prérequis (Arch) :
@@ -59,25 +62,46 @@ Prérequis (Arch) :
 sudo pacman -S --needed base-devel git python clang llvm lld bc cpio libelf pahole dtc zip unzip
 ```
 
-Le build requiert clang + lld récents (LLVM 18+) pour compiler un noyau
-6.12. La stack Rust du noyau GKI est désactivée (fragment) car non nécessaire
-pour ces modules et pour éviter la dépendance `rustc`/`bindgen`.
+Le build requiert clang + lld récents (LLVM 18+, 22 testé ici) pour compiler un
+noyau 6.12. La stack Rust du noyau GKI est désactivée (fragment) car non
+nécessaire pour ces modules et pour éviter la dépendance `rustc`/`bindgen`.
 
-Détail : voir `docs/BUILD.md`.
+Détail : `docs/BUILD.md` (build noyau) et `drivers/README.md` (pilotes
+out-of-tree, recette FORTIFY/clang 22).
 
-## Déploiement sur le device
+## Module Magisk
 
-Les `.ko` doivent être chargés sur le **même noyau** que celui qui tourne sur
-l'appareil. GKI active `CONFIG_MODVERSIONS=y` et `CONFIG_MODULE_SIG=y` : un
-module est signé et versionné (vermagic). Deux voies possibles :
+`./build-magisk.sh` assemble un zip installable via l'appli Magisk :
 
-1. **Module Magisk/KernelSU** : déposer les `.ko` dans le module, les charger
-   au boot via `post-fs-data.sh` avec `insmod`, après avoir re-signé/vérifié la
-   correspondance vermagic avec le noyau du device.
-2. **Rebuild complet du noyau GKI du device** (LineageOS 23.2 lynx) avec ces
-   pilotes intégrés, et flash d'un `boot.img`/`vendor_boot` custom.
+```
+module.prop                                (id=nethunter_lynx)
+META-INF/com/google/android/update-binary  (installer Magisk standard)
+META-INF/com/google/android/updater-script
+post-fs-data.sh                            (insmod dans l'ordre des dépendances)
+uninstall.sh                               (rmmod best-effort)
+system/lib/modules/*.ko                    (126 in-tree + 88XXau.ko + 8188eu.ko)
+```
 
-Dans les deux cas le bootloader doit être déverrouillé et le device rooté.
+Le `post-fs-data.sh` charge les modules dans cet ordre :
+`cfg80211 → mac80211 → rt2x00lib → rt2x00usb → rt2800lib → rt2800usb →
+ath9k_hw → ath9k_common → ath9k_htc → btusb → hci_uart → rtl8xxxu →
+88XXau → 8188eu`, avec journal dans `/data/local/tmp/nethunter-modules.log`.
+
+## Déploiement sur le device — avertissement vermagic
+
+GKI active `CONFIG_MODVERSIONS=y` et `CONFIG_MODULE_SIG=y`. Un module compilé
+contre 6.12.92 ne se charge que sur un noyau de version **exactement
+identique** (vermagic + CRC de symboles). Le device LineageOS 23.2 lynx a très
+probablement un `uname -r` différent.
+
+**Lire `docs/VERMAGIC.md` avant le test.** En résumé :
+
+1. Vérifier : `adb shell uname -r` vs `modinfo <fichier.ko> | grep vermagic`.
+2. Si différent : recompiler contre le noyau exact du device (`.config` +
+   `Module.symvers` de LineageOS), patcher la chaîne vermagic à longueur égale,
+   ou utiliser KernelSU.
+
+Le bootloader doit être déverrouillé et le device rooté.
 
 ## Avertissement
 

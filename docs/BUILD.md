@@ -51,10 +51,22 @@ Déroulé :
 3. `make LLVM=1 O=out ARCH=arm64 gki_defconfig nethunter.config`
    (la cible `.config` applique le fragment via `merge_config.sh -m`).
 4. `make LLVM=1 O=out ARCH=arm64 -j$(nproc)` : noyau + modules in-tree.
-5. Build des pilotes out-of-tree dans `drivers/` :
-   - `rtl8812au` (aircrack-ng/rtl8812au)
-   - `rtl8188eu` (aircrack-ng/rtl8188eus)
+5. Build des pilotes out-of-tree dans `drivers/` (recette FORTIFY/clang 22, voir
+   `drivers/README.md`) :
+   - `rtl8812au` (aircrack-ng/rtl8812au) → `88XXau.ko`
+   - `rtl8188eu` (aircrack-ng/rtl8188eus) → `8188eu.ko`
 6. Collecte des `.ko` + artefacts dans `output/`.
+
+### Module Magisk
+
+```bash
+./build-magisk.sh            # output/nethunter-lynx-magisk-6.12.92.zip
+```
+
+Assemble un module Magisk installable : 126 modules in-tree + `88XXau.ko` +
+`8188eu.ko` (stripés de leur debug info), `post-fs-data.sh` (insmod ordonné),
+`uninstall.sh`, structure META-INF standard. Voir `docs/VERMAGIC.md` pour la
+contrainte de chargement.
 
 ### RAM / LTO
 
@@ -77,8 +89,8 @@ output/
 │   ├── rtl8xxxu.ko
 │   ├── ath9k_htc.ko  (+ ath9k_hw.ko, ath9k_common.ko, ath.ko)
 │   ├── btusb.ko
-│   ├── rtl8812au.ko
-│   ├── rtl8188eu.ko
+│   ├── 88XXau.ko     (rtl8812au out-of-tree)
+│   ├── 8188eu.ko     (rtl8188eu out-of-tree)
 │   └── ...
 ├── Image / Image.gz      # image noyau GKI (référence)
 ├── Module.symvers        # symboles pour rebuild de modules externes
