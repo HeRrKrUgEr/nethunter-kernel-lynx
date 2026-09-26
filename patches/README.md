@@ -11,6 +11,6 @@ principalement :
    et `USB_CONFIGFS_F_FS=y` sont déjà actives dans `gki_defconfig`.
 3. **bluetooth / btusb** — mainline ; on active simplement `CONFIG_BT_HCIBTUSB=m`.
 
-Tout est donc géré par configuration (`configs/nethunter.fragment`), pas par
+Tout est donc géré par configuration (`configs/nethunter.config`), pas par
 patch. Ce répertoire est conservé pour d'éventuels futurs patches correctifs
 spécifiques à `lynx`.
