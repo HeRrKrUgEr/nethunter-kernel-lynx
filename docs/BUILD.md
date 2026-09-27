@@ -66,6 +66,21 @@ compile pas avec clang 16+ sous `-Werror`. BTF n'est requis ni pour le vermagic
 ni pour les CRC modversions des modules WiFi/BT : le désactiver ne change rien
 au chargement des modules.
 
+## LTO thin (obligatoire pour GKI)
+
+Le noyau GKI Google (`android14-6.1`) est compilé **avec LTO thin**
+(`CONFIG_LTO_CLANG_THIN=y`) via le build system officiel. `gki_defconfig`
+n'active PAS LTO à lui seul. Un module compilé sans LTO ne charge pas sur un
+noyau LTO : le module loader le rejette avec `invalid module format` (ENOEXEC).
+Le fragment force donc `CONFIG_LTO_CLANG_THIN=y` (cf. `configs/nethunter.config`).
+
+Vérifier après build :
+
+```sh
+grep -E 'CONFIG_LTO_CLANG' out/.config
+# => CONFIG_LTO_CLANG=y + CONFIG_LTO_CLANG_THIN=y
+```
+
 ## Build
 
 ```bash
