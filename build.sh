@@ -32,6 +32,7 @@ OUT_DIR="${ROOT_DIR}/out"
 DRIVERS_DIR="${ROOT_DIR}/drivers"
 OUTPUT_DIR="${ROOT_DIR}/output"
 CONFIGS_DIR="${ROOT_DIR}/configs"
+PATCHES_DIR="${ROOT_DIR}/patches"
 
 BRANCH="${BRANCH:-android14-6.1}"
 COMMIT="${COMMIT:-edaaac4d5c85cb9fb220767a9e5f859cb730fb27}"
@@ -119,6 +120,14 @@ for entry in "${OOT_DRIVERS[@]}"; do
   if [ ! -d "${d}/.git" ]; then
     log "  clonage ${name}"
     git clone --depth 1 "${url}" "${d}"
+  fi
+  # Patch cfg80211 : les signatures de cfg80211_ch_switch_notify /
+  # cfg80211_ch_switch_started_notify ont change (punct_bitmap ajoute en 6.1).
+  # Les drivers aircrack-ng ont un seuil faux (6.3 au lieu de 6.1) -> patch.
+  patch_file="${PATCHES_DIR}/${name}-cfg80211-6.1.patch"
+  if [ -f "$patch_file" ]; then
+    log "  patch ${name} (cfg80211 6.1)"
+    git -C "$d" apply "$patch_file" || { err "  echec patch ${name}"; exit 1; }
   fi
   log "  build ${name} (.ko)"
   # Workaround FORTIFY_SOURCE + clang : drivers legacy utilisant u8 data[0].

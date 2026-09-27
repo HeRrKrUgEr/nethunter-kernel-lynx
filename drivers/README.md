@@ -57,6 +57,28 @@ make -C drivers/rtl8812au ARCH=arm64 LLVM=1 \
 
 Idem pour `rtl8188eu`.
 
+## Correctif cfg80211 (kernel 6.1)
+
+Les signatures de `cfg80211_ch_switch_notify` et
+`cfg80211_ch_switch_started_notify` ont changé avec le puncturing Wi-Fi 7 : le
+paramètre `punct_bitmap` (et `count`/`quiet` pour `*_started_notify`) est
+présent dans le noyau 6.1, mais ces drivers aircrack-ng (figés en 2018/2019)
+utilisent un seuil `KERNEL_VERSION(6, 3, 0)` pour la variante 4/6 args — donc
+pour 6.1 ils compilent la variante 3/5 args et échouent.
+
+Patchs (`patches/`), appliqués par `build.sh` après le clonage :
+
+- `rtl8812au-cfg80211-6.1.patch` : seuil `6.3` → `6.1` pour
+  `cfg80211_ch_switch_notify` (4 args) et `cfg80211_ch_switch_started_notify`
+  (6 args).
+- `rtl8188eu-cfg80211-6.1.patch` : seuil `6.3` → `6.1` pour
+  `cfg80211_ch_switch_notify` (4 args).
+
+Sans ce patch, la compilation échoue avec
+« too few arguments to function call, expected 4/6 ».
+(Le build 6.12 n'avait pas ce problème : `punct_bitmap` a été retiré de
+`cfg80211_ch_switch_notify` en 6.9.)
+
 ## Nom des modules produits
 
 - `rtl8812au` → `88XXau.ko` (MODULE_NAME = `88XXau` quand RTL8812A + RTL8821A
