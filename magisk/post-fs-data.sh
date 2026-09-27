@@ -1,7 +1,7 @@
 #!/system/bin/sh
 # post-fs-data.sh — Kali NetHunter modules (Pixel 7a / lynx)
 # Exécuté par Magisk au stade post-fs-data.
-# Charge les .ko du noyau GKI 6.12.92 dans l'ordre des dépendances.
+# Charge les .ko du noyau GKI 6.1.145 (Android 14) dans l'ordre des dépendances.
 # Journal : /data/local/tmp/nethunter-modules.log
 #
 # ATTENTION : les .ko sont compilés contre un noyau précis (vermagic +

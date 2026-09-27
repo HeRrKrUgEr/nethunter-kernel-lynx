@@ -3,7 +3,7 @@
 #                    produits par build.sh (modules in-tree + out-of-tree).
 #
 # Usage : ./build-magisk.sh [KERNEL_VER]
-#   - KERNEL_VER : version du noyau ciblé (défaut 6.12.92), sert à nommer le zip.
+#   - KERNEL_VER : version du noyau ciblé (défaut 6.1.145), sert à nommer le zip.
 #   - Produit : output/nethunter-lynx-magisk-<KERNEL_VER>.zip
 #
 # Prérequis : build.sh a déjà été exécuté (output/modules/*.ko présents) et
@@ -24,7 +24,7 @@ MAGISK_DIR="$ROOT_DIR/magisk"
 OUTPUT_DIR="$ROOT_DIR/output"
 DRIVERS_DIR="$ROOT_DIR/drivers"
 
-KERNEL_VER="${1:-6.12.92}"
+KERNEL_VER="${1:-6.1.145}"
 ZIP_NAME="nethunter-lynx-magisk-${KERNEL_VER}.zip"
 ZIP_PATH="$OUTPUT_DIR/$ZIP_NAME"
 

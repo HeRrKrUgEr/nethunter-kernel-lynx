@@ -1,6 +1,6 @@
 id=nethunter_lynx
 name=Kali NetHunter modules - Pixel 7a (lynx)
-version=v6.12.92-gki
-versionCode=61292
+version=v6.1.145-android14
+versionCode=61145
 author=HeRrKrUgEr
-description=Modules noyau GKI 6.12.92 (stack WiFi/BT + rtl8812au/rtl8188eu out-of-tree) pour Kali NetHunter sur Pixel 7a. Charge les .ko par insmod au boot. ATTENTION vermagic : les .ko doivent correspondre au noyau exact du device (voir docs/VERMAGIC.md).
+description=Modules noyau GKI 6.1.145 (Android 14) - stack WiFi/BT + rtl8812au/rtl8188eu out-of-tree - pour Kali NetHunter sur Pixel 7a. Charge les .ko par insmod au boot. ATTENTION vermagic : les .ko doivent correspondre au noyau exact du device (6.1.145-android14-11-gedaaac4d5c85, voir docs/VERMAGIC.md).

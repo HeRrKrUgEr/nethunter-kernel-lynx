@@ -1,7 +1,7 @@
 # Pilotes out-of-tree
 
 Deux pilotes WiFi USB ne sont pas dans l'arbre GKI `kernel/common` et sont
-compilés comme modules externes contre le noyau GKI 6.12 :
+compilés comme modules externes contre le noyau GKI 6.1 :
 
 | Pilote | Carte | Source (aircrack-ng) | `.ko` produit | Statut |
 |---|---|---|---|---|
@@ -18,17 +18,17 @@ présent dans `kernel/common`, en réutilisant l'arbre de build `out/`.
 - `rtl8188eu` est un chipset distinct du `rtl8xxxu` in-tree. Le driver
   aircrack-ng fournit l'injection.
 
-## Recette de compilation (GKI 6.12 + clang 22)
+## Recette de compilation (GKI 6.1 + clang 17)
 
-Ces drivers legacy ne compilent PAS nativement contre un noyau GKI 6.12 récent
-(clang 22). Trois problèmes cumulés, et leur correctif :
+Ces drivers legacy ne compilent PAS nativement contre un noyau GKI 6.1 avec
+clang récent (16+, ici clang 17). Trois problèmes cumulés, et leur correctif :
 
 1. **FORTIFY_SOURCE** (`CONFIG_FORTIFY_SOURCE=y`) : le code utilise des membres
    `u8 data[0]` (zero-length arrays) qui déclenchent `__write_overflow_field`.
    Correctif : `-D__NO_FORTIFY`. Ce define désactive proprement l'inclusion de
    `fortify-string.h` (`kernel/common/include/linux/string.h:389`), sans diverger
    du noyau (c'est la voie utilisée par `lib/string.c` lui-même).
-2. **Warnings legacy devenus erreurs** (`-Werror`, `CONFIG_WERROR=y`) : clang 22
+2. **Warnings legacy devenus erreurs** (`-Werror`, `CONFIG_WERROR=y`) : clang 16+
    émet une longue série de warnings sur ces codebases (tautological-overlap-
    compare, implicit-fallthrough, parentheses-equality, maybe-uninitialized…).
    Correctif : `-Wno-error` (dégrade les warnings génériques en warnings) +

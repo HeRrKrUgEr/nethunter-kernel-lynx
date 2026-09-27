@@ -5,7 +5,7 @@ se charger tels quels sur le device, et comment le vérifier / corriger.
 
 ## Le noyau GKI active trois verrous
 
-Le noyau GKI `android16-6.12` active (visible dans `out/.config`) :
+Le noyau GKI `android14-6.1` active (visible dans `out/.config`) :
 
 - `CONFIG_MODVERSIONS=y` : chaque symbole exporté reçoit un CRC calculé depuis
   sa signature. Un module compilé contre un `Module.symvers` différent
@@ -15,14 +15,15 @@ Le noyau GKI `android16-6.12` active (visible dans `out/.config`) :
   device Android de production, c'est souvent le cas). Ici le build signe avec
   une clé jetable `out/certs/signing_key.pem` : elle ne correspond pas à la
   clé du noyau du device.
-- `CONFIG_LOCALVERSION` / `CONFIG_LOCALVERSION_AUTO` : la chaîne `uname -r`
-  embarque un hash git (`gaff1917ea969` ici) et le suffixe `-4k`. Cette chaîne
+- `CONFIG_LOCALVERSION` / le mécanisme de version GKI : la chaîne `uname -r`
+  embarque `-android14-11-gedaaac4d5c85` (dérivé de `BRANCH=android14-6.1` +
+  `KMI_GENERATION=11` + hash git, via `scripts/setlocalversion`). Cette chaîne
   fait partie du **vermagic**.
 
 Le vermagic produit par **ce** build est :
 
 ```
-6.12.92-4k-gaff1917ea969 SMP preempt mod_unload modversions aarch64
+6.1.145-android14-11-gedaaac4d5c85 SMP preempt mod_unload modversions aarch64
 ```
 
 Le vermagic du module doit être **strictement égal** à celui du noyau qui
@@ -44,22 +45,23 @@ modinfo output/modules/cfg80211.ko | grep -E 'vermagic|scmversion'
 ```
 
 Si `uname -r` du device ne vaut pas exactement
-`6.12.92-4k-gaff1917ea969` (ou que les flags SMP/preempt/modversions
-diffèrent), **aucun module ne se chargera** tel quel.
+`6.1.145-android14-11-gedaaac4d5c85-ab16017558` (ou que les flags
+SMP/preempt/modversions diffèrent), **aucun module ne se chargera** tel quel.
 
 ## Ce qui marchera out-of-the-box
 
 Uniquement si le device tourne **exactement** ce noyau :
-- même version `6.12.92` + même `CONFIG_LOCALVERSION` (`-4k`) + même hash git
-  (`gaff1917ea969`), soit un `uname -r` identique ;
+- même version `6.1.145` + même suffixe de version GKI
+  (`-android14-11-gedaaac4d5c85`, dérivé de la branche + KMI generation +
+  hash git), soit un `uname -r` identique ;
 - même `Module.symvers` (donc mêmes CRC de symboles) ;
 - `CONFIG_MODULE_SIG_FORCE` désactivé, OU modules re-signés avec la clé du
   device.
 
-Concrètement : le Pixel 7a sous **LineageOS 23.2** a presque sûrement un
-`uname -r` différent (LineageOS ajoute son propre localversion, hash et
-build number). **Attendre un échec au premier insmod est la norme, pas
-l'exception.**
+Concrètement : le Pixel 7a sous Android 14 a un `uname -r` de la forme
+`6.1.145-android14-11-gedaaac4d5c85-ab<build>`. Si ce build GKI (`ab16017558`)
+ne correspond pas exactement, le vermagic diffère. **Attendre un échec au
+premier insmod est la norme, pas l'exception.**
 
 ## Les 3 voies si le vermagic diffère
 
